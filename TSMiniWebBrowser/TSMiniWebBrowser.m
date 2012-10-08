@@ -49,7 +49,7 @@ enum actionSheetButtonIndex {
 
 -(void)setTitleBarText:(NSString*)pageTitle {
     if (mode == TSMiniWebBrowserModeModal) {
-        navigationBarModal.topItem.title = pageTitle;
+        self.navigationBarModal.topItem.title = pageTitle;
         
     } else if(mode == TSMiniWebBrowserModeNavigation) {
         if(pageTitle) [[self navigationItem] setTitle:pageTitle];
@@ -95,20 +95,31 @@ enum actionSheetButtonIndex {
 #pragma mark - Init
 
 // This method is only used in modal mode
--(void) initTitleBar {
-    UIBarButtonItem *buttonDone = [[UIBarButtonItem alloc] initWithTitle:modalDismissButtonTitle style:UIBarButtonItemStyleBordered target:self action:@selector(dismissController)];
+
+-(void) loadTitleNavigationBar
+{
+    UIBarButtonItem *buttonDone = [[UIBarButtonItem alloc] initWithTitle:modalDismissButtonTitle
+                                                                   style:UIBarButtonItemStyleBordered
+                                                                  target:self
+                                                                  action:@selector(dismissController)];
     
     UINavigationItem *titleBar = [[UINavigationItem alloc] initWithTitle:@""];
     titleBar.leftBarButtonItem = buttonDone;
     
     CGFloat width = self.view.frame.size.width;
-    navigationBarModal = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, width, 44)];
+    self.navigationBarModal = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, width, 44)];
     //navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleBottomMargin;
-    navigationBarModal.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    navigationBarModal.barStyle = barStyle;
-    [navigationBarModal pushNavigationItem:titleBar animated:NO];
+    self.navigationBarModal.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    self.navigationBarModal.barStyle = barStyle;
+    [self.navigationBarModal pushNavigationItem:titleBar animated:NO];
+}
+
+-(void) initTitleBar
+{
+    if(!self.navigationBarModal)
+        [self loadTitleNavigationBar];
     
-    [self.view addSubview:navigationBarModal];
+    [self.view addSubview:self.navigationBarModal];
 }
 
 -(void) initToolBar {
@@ -207,7 +218,7 @@ enum actionSheetButtonIndex {
         showActionButton = YES;
         modalDismissButtonTitle = NSLocalizedString(@"Done", nil);
         forcedTitleBarText = nil;
-        barStyle = UIBarStyleDefault;
+        barStyle = UIStatusBarStyleDefault;
     }
     
     return self;
@@ -231,7 +242,7 @@ enum actionSheetButtonIndex {
     
     // Store the current navigationBar bar style to be able to restore it later.
     if (mode == TSMiniWebBrowserModeNavigation) {
-        originalBarStyle = self.navigationController.navigationBar.barStyle;
+        originalBarStyle = (UIStatusBarStyle)self.navigationController.navigationBar.barStyle;
     }
     
     // Init tool bar
