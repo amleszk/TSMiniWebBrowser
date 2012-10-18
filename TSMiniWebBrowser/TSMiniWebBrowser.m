@@ -26,6 +26,13 @@
 
 #import "TSMiniWebBrowser.h"
 
+@interface TSMiniWebBrowser ()
+{
+    UIWebView *webView;
+    UIToolbar *toolBar;
+}
+@end
+
 @implementation TSMiniWebBrowser
 
 @synthesize delegate;

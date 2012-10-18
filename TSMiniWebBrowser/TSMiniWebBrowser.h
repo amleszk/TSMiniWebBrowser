@@ -42,10 +42,6 @@ typedef enum {
     // URL
     NSURL *urlToLoad;
     
-    // Layout
-    UIWebView *webView;
-    UIToolbar *toolBar;
-    
     // Toolbar items
     UIActivityIndicatorView *activityIndicator;
     UIBarButtonItem *buttonGoBack;
@@ -75,6 +71,8 @@ typedef enum {
 @property (nonatomic, assign) UIStatusBarStyle barStyle;
 @property (nonatomic, strong) NSString *modalDismissButtonTitle;
 @property (nonatomic, strong) UINavigationBar *navigationBarModal;
+@property (nonatomic, readonly) UIWebView *webView;
+@property (nonatomic, readonly) UIToolbar *toolBar;
 
 // Public Methods
 - (id)initWithUrl:(NSURL*)url;
