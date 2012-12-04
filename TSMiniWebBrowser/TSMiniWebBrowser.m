@@ -27,10 +27,6 @@
 #import "TSMiniWebBrowser.h"
 
 @interface TSMiniWebBrowser ()
-{
-    UIWebView *webView;
-    UIToolbar *toolBar;
-}
 @end
 
 @implementation TSMiniWebBrowser
@@ -64,8 +60,8 @@ enum actionSheetButtonIndex {
 }
 
 -(void) toggleBackForwardButtons {
-    buttonGoBack.enabled = webView.canGoBack;
-    buttonGoForward.enabled = webView.canGoForward;
+    buttonGoBack.enabled = _webView.canGoBack;
+    buttonGoForward.enabled = _webView.canGoForward;
 }
 
 -(void)showActivityIndicators {
@@ -81,10 +77,10 @@ enum actionSheetButtonIndex {
 }
 
 -(void) dismissController {
-    if ( webView.loading ) {
-        [webView stopLoading];
+    if (_webView.loading ) {
+        [_webView stopLoading];
     }
-    [self dismissModalViewControllerAnimated:YES];
+    [self dismissViewControllerAnimated:YES completion:nil];
     
     // Notify the delegate
     if (self.delegate != NULL && [self.delegate respondsToSelector:@selector(tsMiniWebBrowserDidDismiss)]) {
@@ -96,7 +92,7 @@ enum actionSheetButtonIndex {
 //TSMiniWebBrowser can get deallocated while the page is still loading and the web view will call its delegate-- resulting in a crash
 -(void)dealloc
 {
-    [webView setDelegate:nil];
+    [_webView setDelegate:nil];
 }
 
 #pragma mark - Init
@@ -136,14 +132,14 @@ enum actionSheetButtonIndex {
     
     CGSize viewSize = self.view.frame.size;
     if (mode == TSMiniWebBrowserModeTabBar) {
-        toolBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, -1, viewSize.width, kToolBarHeight)];
+        _toolBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, -1, viewSize.width, kToolBarHeight)];
     } else {
-        toolBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, viewSize.height-kToolBarHeight, viewSize.width, kToolBarHeight)];
+        _toolBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, viewSize.height-kToolBarHeight, viewSize.width, kToolBarHeight)];
     }
     
-    toolBar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
-    toolBar.barStyle = barStyle;
-    [self.view addSubview:toolBar];
+    _toolBar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
+    _toolBar.barStyle = barStyle;
+    [self.view addSubview:_toolBar];
     
     buttonGoBack = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"back_icon.png"] style:UIBarButtonItemStylePlain target:self action:@selector(backButtonTouchUp:)];
     
@@ -184,29 +180,29 @@ enum actionSheetButtonIndex {
     }
     
     // Set buttons to tool bar
-    [toolBar setItems:toolBarButtons animated:YES];
+    [_toolBar setItems:toolBarButtons animated:YES];
 }
 
 -(void) initWebView {
-    CGSize viewSize = self.view.frame.size;
+    CGSize viewSize = self.view.bounds.size;
     if (mode == TSMiniWebBrowserModeModal) {
-        webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, kToolBarHeight, viewSize.width, viewSize.height-kToolBarHeight*2)];
+        _webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, kToolBarHeight, viewSize.width, viewSize.height-kToolBarHeight*2)];
     } else if(mode == TSMiniWebBrowserModeNavigation) {
-        webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, 0, viewSize.width, viewSize.height-kToolBarHeight)];
+        _webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, 0, viewSize.width, viewSize.height-kToolBarHeight)];
     } else if(mode == TSMiniWebBrowserModeTabBar) {
         self.view.backgroundColor = [UIColor redColor];
-        webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, kToolBarHeight-1, viewSize.width, viewSize.height-kToolBarHeight+1)];
+        _webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, kToolBarHeight-1, viewSize.width, viewSize.height-kToolBarHeight+1)];
     }
-    webView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.view addSubview:webView];
+    _webView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:_webView];
     
-    webView.scalesPageToFit = YES;
+    _webView.scalesPageToFit = YES;
     
-    webView.delegate = self;
+    _webView.delegate = self;
     
     // Load the URL in the webView
     NSURLRequest *requestObj = [NSURLRequest requestWithURL:urlToLoad];
-    [webView loadRequest:requestObj];
+    [_webView loadRequest:requestObj];
 }
 
 #pragma mark -
@@ -302,12 +298,12 @@ enum actionSheetButtonIndex {
  * If you experience perfomance problems on old devices ratation, comment out this method.
  */
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
-    CGFloat ratioAspect = webView.bounds.size.width/webView.bounds.size.height;
+    CGFloat ratioAspect = _webView.bounds.size.width/_webView.bounds.size.height;
     switch (toInterfaceOrientation) {
         case UIInterfaceOrientationPortraitUpsideDown:
         case UIInterfaceOrientationPortrait:
             // Going to Portrait mode
-            for (UIScrollView *scroll in [webView subviews]) { //we get the scrollview 
+            for (UIScrollView *scroll in [_webView subviews]) { //we get the scrollview
                 // Make sure it really is a scroll view and reset the zoom scale.
                 if ([scroll respondsToSelector:@selector(setZoomScale:)]){
                     scroll.minimumZoomScale = scroll.minimumZoomScale/ratioAspect;
@@ -318,7 +314,7 @@ enum actionSheetButtonIndex {
             break;
         default:
             // Going to Landscape mode
-            for (UIScrollView *scroll in [webView subviews]) { //we get the scrollview 
+            for (UIScrollView *scroll in [_webView subviews]) { //we get the scrollview
                 // Make sure it really is a scroll view and reset the zoom scale.
                 if ([scroll respondsToSelector:@selector(setZoomScale:)]){
                     scroll.minimumZoomScale = scroll.minimumZoomScale *ratioAspect;
@@ -341,7 +337,7 @@ enum actionSheetButtonIndex {
 - (void)showActionSheet {
     NSString *urlString = @"";
     if (showURLStringOnActionSheetTitle) {
-        NSURL* url = [webView.request URL];
+        NSURL* url = [_webView.request URL];
         urlString = [url absoluteString];
     }
     UIActionSheet *actionSheet = [[UIActionSheet alloc] init];
@@ -373,7 +369,7 @@ enum actionSheetButtonIndex {
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex == [actionSheet cancelButtonIndex]) return;
     
-    NSURL *theURL = [webView.request URL];
+    NSURL *theURL = [_webView.request URL];
     if (theURL == nil || [theURL isEqual:[NSURL URLWithString:@""]]) {
         theURL = urlToLoad;
     }
@@ -409,19 +405,19 @@ enum actionSheetButtonIndex {
 #pragma mark - Actions
 
 - (void)backButtonTouchUp:(id)sender {
-    [webView goBack];
+    [_webView goBack];
     
     [self toggleBackForwardButtons];
 }
 
 - (void)forwardButtonTouchUp:(id)sender {
-    [webView goForward];
+    [_webView goForward];
     
     [self toggleBackForwardButtons];
 }
 
 - (void)reloadButtonTouchUp:(id)sender {
-    [webView reload];
+    [_webView reload];
     
     [self toggleBackForwardButtons];
 }
@@ -438,7 +434,7 @@ enum actionSheetButtonIndex {
 }
 
 - (void)loadURL:(NSURL*)url {
-    [webView loadRequest: [NSURLRequest requestWithURL: url]];
+    [_webView loadRequest: [NSURLRequest requestWithURL: url]];
 }
 
 #pragma mark - UIWebViewDelegate
@@ -465,7 +461,7 @@ enum actionSheetButtonIndex {
     [self showActivityIndicators];
 }
 
-- (void)webViewDidFinishLoad:(UIWebView *)_webView {
+- (void)webViewDidFinishLoad:(UIWebView *)webView {
     // Show page title on title bar?
     if (showPageTitleOnTitleBar) {
         NSString *pageTitle = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
